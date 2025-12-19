@@ -1,0 +1,54 @@
+# 基于 JimsGarage 的[油兔视频](https://youtu.be/qmlHirOpzpc?si=l0HcIUJYtlLS9MnH)和 [compose.yaml](https://github.com/JamesTurland/JimsGarage/blob/main/Tinyauth/docker-compose.yaml) 
+# 以及 [IT-Connect - Florian](https://www.it-connect.fr/tinyauth-traefik-ajoutez-un-portail-authentification-a-vos-applications-web/) 的博文创建的docker-compose.yaml文件
+# 如何在 1Panel 中与 Openresty 使用：[使用TinyAuth实现任意应用登录认证| LiuShen'sBlog](https://blog.liushen.fun/posts/362bfd8b/#%E4%BD%BF%E7%94%A8)
+
+services:
+  tinyauth:
+    image: ghcr.io/steveiliop56/tinyauth:v4
+    container_name: tinyauth
+    restart: unless-stopped
+    ports:
+     - '3000:3000'
+    environment:
+      - SECRET=${SECRET}
+      - SESSION_EXPIRY=604800 # 7 day；本地 cookie 过期时间，单位为秒
+      - APP_TITLE=欢迎访问 Tinyauth SSO  # 登录页面标题
+      - APP_URL=https://sso.tinyauth.app # 登录页面的URL，请替换为自托管的tinyauth的外部访问地址
+      # 运行命令生成加密后的密码：echo $(密码 -nB 用户名) | sed -e s/\$/\$\$/g"
+      # 使用 .env文件中的 USERS 变量管理，或使用 users_file 文件管理多个用户
+      # - USERS=${USERS}
+      - USERS_FILE=users_file # 可以通过users_file文件管理多个用户
+      - LOG_LEVEL=3 # trace debug info warn error fatal panic 默认为info
+      - PROVIDERS_GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID} # GitHub OAuth 客户端ID
+      - PROVIDERS_GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET} # GitHub OAuth 密钥
+      - PROVIDERS_GITHUB_REDIRECT_URI=${GITHUB_REDIRECT_URI} # 回调地址
+      - OAUTH_WHITELIST=${OAUTH_WHITELIST} # 指定在OAuth提供商中允许谁登录
+      - LOGIN_MAX_RETRIES=3 # 最大尝试次数
+      - LOGIN_TIMEOUT=300 # 登陆错误后需要等待再试时间，单位为秒
+      - FORGOT_PASSWORD_MESSAGE=lol # 忘记密码提示
+    volumes:
+      - ./data:/data
+      - ./users:/tinyauth/users_file
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - tinyauth-proxy
+    labels: 
+    # 若不需要独立控制容器或指定用户访问指定容器可删除该段，详细配置请查阅：https://tinyauth.app/docs/breaking-updates/3-to-4#labels
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.tinyauth.entrypoints=http"
+      - "traefik.http.routers.tinyauth.rule=Host(`sso.tinyauth.app`)"
+      - "traefik.http.middlewares.tinyauth-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.tinyauth.middlewares=tinyauth-https-redirect"
+      - "traefik.http.routers.tinyauth-secure.entrypoints=https"
+      - "traefik.http.routers.tinyauth-secure.rule=Host(`sso.tinyauth.app`)"
+      # - "traefik.http.routers.tinyauth-secure.tls=true" # 未知，但结合下方的 cloudflare 来看，估计是使用对于服务商验证证书的
+      # - "traefik.http.routers.tinyauth-secure.tls.certresolver=cloudflare" # 因服务器未使用 CF，所以将该行注释
+      - "traefik.http.routers.tinyauth-secure.service=tinyauth"
+      - "traefik.http.services.tinyauth.loadbalancer.server.port=3000" #未测试，理论上，将该行添加到其他容器中即可实现单独对容器的 SSO 认证
+      - "traefik.http.middlewares.tinyauth.forwardauth.address=http://tinyauth:3000/api/auth/traefik"
+
+# 记得运行 docker network create tinyauth-proxy
+networks:
+  tinyauth-proxy:
+    external: true
