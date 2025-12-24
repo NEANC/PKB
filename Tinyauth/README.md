@@ -3,11 +3,16 @@
 ## 1. 部署 TinyAuth
 
 ```bash
-git clone https://github.com/steveiliop56/tinyauth.git
+mkdir tinyauth
 cd tinyauth
-nano docker-compose.yml # 根据注释修改配置文件
-nano .env  # 根据注释修改
-nano users  # 用户管理，格式为 <用户名>:<加密后的密码>
+
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Tinyauth/docker-compose.yaml
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Tinyauth/.env
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Tinyauth/users
+
+nano docker-compose.yaml  # 根据注释修改配置
+nano .env  # 根据注释修改配置
+nano users  # 本地用户管理，格式为 <用户名>:<加密后的密码>
 
 docker compose up -d
 ```
@@ -34,9 +39,8 @@ docker compose up -d
 </summary>
 
 ```nginx
-# ===============================
 # 主应用反向代理 + 鉴权
-# ===============================
+
 # 静态资源直接放行（不鉴权）
 location = /manifest.json {
     proxy_pass http://127.0.0.1:8082; # 被保护的主应用地址，也是反代地址
@@ -79,9 +83,7 @@ location ^~ / {
     proxy_ssl_name $proxy_host;
 }
 
-# ===============================
 # 子请求：调用 tinyauth 检查登录
-# ===============================
 location = /_tinyauth_check {
     internal;
     proxy_pass http://127.0.0.1:14389/api/auth/nginx;  # tinyauth 地址
@@ -90,9 +92,7 @@ location = /_tinyauth_check {
     proxy_set_header x-forwarded-uri   $request_uri;
 }
 
-# ===============================
 # 如果未登录，跳转到 tinyauth 登录页
-# ===============================
 location @tinyauth_login {
     return 302 https://sso.tinyauth.app/login?redirect_uri=$scheme://$host$request_uri;
     # 将 sso.tinyauth.app 替换为自托管的 tinyauth 的外部访问地址
@@ -134,9 +134,17 @@ graph TD
     D --> E["配置替换：<br/>将配置中的 &lt;用户&gt;:&lt;加密密码&gt; 替换为 &lt;用户&gt;:&lt;加密密码&gt;:&lt;MFA码&gt;"]
 ```
 
+## Traefik 集成
+
+请阅读 [使用 TinyAuth 和 Traefik 实现简单的认证代理 - Skyone Blog](https://blog.skyone.dev/2023/traefik-docker-gateway/)
+
+本库中的 `docker-compose.yaml` 文件已经集成了 Traefik 的配置示例。  
+但本库不依赖 Traefik，请根据需要选择使用方案。
+
 ## 参考链接
 
 - [TinyAuth Wiki](https://tinyauth.app/docs/about)
 - JimsGarage 的[油兔视频](https://youtu.be/qmlHirOpzpc?si=l0HcIUJYtlLS9MnH)和 [compose.yaml](https://github.com/JamesTurland/JimsGarage/blob/main/Tinyauth/docker-compose.yaml)
 - [IT-Connect - Florian](https://www.it-connect.fr/tinyauth-traefik-ajoutez-un-portail-authentification-a-vos-applications-web/)
-- [使用 TinyAuth 实现任意应用登录认证| LiuShen'sBlog](https://blog.liushen.fun/posts/362bfd8b/#%E4%BD%BF%E7%94%A8)
+- [使用 TinyAuth 实现任意应用登录认证 | LiuShen'sBlog](https://blog.liushen.fun/posts/362bfd8b/#%E4%BD%BF%E7%94%A8)
+- [使用 TinyAuth 和 Traefik 实现简单的认证代理 - Skyone Blog](https://blog.skyone.dev/2023/traefik-docker-gateway/)
