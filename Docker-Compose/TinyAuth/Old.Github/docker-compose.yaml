@@ -10,7 +10,7 @@ services:
       - SESSION_EXPIRY=604800 # 7 day；本地 cookie 过期时间，单位为秒
       - APP_TITLE=欢迎访问 Tinyauth SSO  # 登录页面标题
       - APP_URL=https://sso.tinyauth.app # 登录页面的URL，请替换为自托管的tinyauth的外部访问地址
-      # 运行命令生成加密后的密码：echo $(密码 -nB 用户名) | sed -e s/\$/\$\$/g"
+      # 运行命令生成加密后的密码：echo $(openssl 密码 -nB 用户名) | sed -e s/\$/\$\$/g
       # 使用 .env文件中的 USERS 变量管理，或使用 users_file 文件管理多个用户
       # - USERS=${USERS}
       - USERS_FILE=users_file # 可以通过users_file文件管理多个用户

@@ -1,14 +1,20 @@
 # 在 1Panel 中部署 TinyAuth 并与 Openresty 结合实现 SSO 鉴权
 
+存档版本
+
+> [!NOTE]
+> 时间戳  
+> 完成编写并完成测试 - 2025.12.24
+
 ## 1. 部署 TinyAuth
 
 ```bash
 mkdir tinyauth
 cd tinyauth
 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Tinyauth/docker-compose.yaml
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Tinyauth/.env
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Tinyauth/users
+wget 'https://raw.githubusercontent.com/NEANC/PKB/main/PocketID+TinyAuth/old.Github/docker-compose.yaml'
+wget 'https://raw.githubusercontent.com/NEANC/PKB/main/PocketID+TinyAuth/old.Github/.env'
+wget 'https://raw.githubusercontent.com/NEANC/PKB/main/PocketID+TinyAuth/old.Github/users'
 
 nano docker-compose.yaml  # 根据注释修改配置
 nano .env  # 根据注释修改配置
@@ -40,22 +46,8 @@ docker compose up -d
 
 ```nginx
 # 主应用反向代理 + 鉴权
-
-# 静态资源直接放行（不鉴权）
-location = /manifest.json {
-    proxy_pass http://127.0.0.1:8082; # 被保护的主应用地址，也是反代地址
-}
-
-location = /favicon.ico {
-    proxy_pass http://127.0.0.1:8082;
-}
-
-location ^~ /assets/ {
-    proxy_pass http://127.0.0.1:8082;
-}
-
-# 其他请求需要鉴权
 location ^~ / {
+    # 目标反代地址
     proxy_pass http://127.0.0.1:8082;
 
     # ---------------------
@@ -74,6 +66,8 @@ location ^~ / {
     proxy_set_header REMOTE-HOST $remote_addr;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection $http_connection;
+    # 强制覆盖转发给后端的Connection头，防止某些后端不支持WebSocket时出现问题
+    # proxy_set_header Connection "upgrade";
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Port $server_port;
     proxy_http_version 1.1;

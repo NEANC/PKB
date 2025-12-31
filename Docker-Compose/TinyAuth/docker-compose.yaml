@@ -1,0 +1,16 @@
+services:
+  tinyauth:
+    image: ghcr.io/steveiliop56/tinyauth:v4.1.0
+    container_name: tinyauth
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env
+    volumes:
+      - ./data:/data
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
