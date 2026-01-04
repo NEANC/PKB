@@ -12,10 +12,10 @@ Vaultwarden 密码管理器，通过 PocketID 实现 SSO 单点登陆
 mkdir Vaultwarden
 cd Vaultwarden
 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Vaultwarden/docker-compose.yaml
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Vaultwarden/docker-compose.yml
 wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Vaultwarden/.env
 
-nano docker-compose.yaml  # 根据注释修改配置
+nano docker-compose.yml  # 根据注释修改配置
 nano .env  #根据注释修改配置
 
 docker compose up -d
@@ -44,22 +44,20 @@ docker compose up -d
 
 ```nginx
 # 'upstream' 指令确保你有一个 http/1.1 连接
-# 这里启用了 keepalive 选项并拥有更好的性能
-#
+# 设置内部别名，即上游点
+# 启用 keepalive 选项并拥有更好的性能
 # 此处定义服务器的 IP 和端口。
-upstream vaultwarden-default {
-  zone vaultwarden-default 64k;
-  server 127.0.0.1:51666;
-  keepalive 2;
+upstream @vaultwarden {
+  zone @vaultwarden 64k;
+  server 127.0.0.1:51666; # 修改这个IP地址
+  keepalive 10;
 }
 
-# 要支持 websocket 连接的话才需要
+# 允许 websocket 连接
 # 参阅：https://nginx.org/en/docs/http/websocket.html
-# 我们不发送上述链接中所说的 "close"，而是发送一个空值。
-# 否则所有的 keepalive 连接都将无法工作。
 map $http_upgrade $connection_upgrade {
     default upgrade;
-    ''      "";
+    ''      close;
 }
 
 ```
@@ -67,23 +65,24 @@ map $http_upgrade $connection_upgrade {
 #### 3.1.2 在 `server` 块中，添加以下内容
 
 ```nginx
-client_max_body_size 525M;
+client_max_body_size 525M;        # 设置最大上传文件大小
+ssl_session_tickets off;          # 禁用 TLS 会话票证（Session Tickets）功能
 ```
 
 #### 完整示例
 
 ```nginx
 # 此处定义服务器的 IP 和端口。
-upstream vaultwarden-default {
-  zone vaultwarden-default 64k;
-  server 127.0.0.1:56666;
-  keepalive 2;
+upstream @vaultwarden {
+  zone @vaultwarden 64k;
+  server 127.0.0.1:56666; # 修改这个IP地址
+  keepalive 10;
 }
 
-# 要支持 websocket 连接的话才需要
+# 激活 websocket 连接
 map $http_upgrade $connection_upgrade {
     default upgrade;
-    ''      "";
+    ''      close;
 }
 
 server {
@@ -91,41 +90,46 @@ server {
     略
 
     client_max_body_size 525M;
+    ssl_session_tickets off;
 
     略
     include /www/sites/vaultwarden/proxy/*.conf;
 }
 ```
 
+---
+
 ### 3.2 Nginx 源文配置
 
 ```nginx
 location ^~ / {
-    proxy_pass http://127.0.0.1:56666;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header REMOTE-HOST $remote_addr;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection $http_connection;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-Port $server_port;
-    proxy_http_version 1.1;
-    add_header X-Cache $upstream_cache_status;
-    add_header Cache-Control no-cache;
-    proxy_ssl_server_name off;
-    proxy_ssl_name $proxy_host;
-    proxy_set_header Upgrade $http_upgrade;
+    proxy_pass http://@vaultwarden; # 无需修改，使用了上方的 upstream 映射
+    proxy_set_header Host $host; 
+    proxy_set_header X-Real-IP $remote_addr; 
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 
+    proxy_set_header REMOTE-HOST $remote_addr; 
+    proxy_set_header Upgrade $http_upgrade; 
     # 强制覆盖转发给后端的Connection头，防止某些后端不支持WebSocket时出现问题
+    # proxy_set_header Connection $http_connection;
+    # 实现普通 HTTP 请求和 Websocket 请求的动态适配
+    proxy_set_header Connection $connection_upgrade;
+    proxy_set_header X-Forwarded-Proto $scheme; 
+    proxy_set_header X-Forwarded-Port $server_port; 
+    proxy_http_version 1.1; 
+    add_header X-Cache $upstream_cache_status; 
+    add_header Cache-Control no-cache; 
+    proxy_ssl_server_name off; 
+    proxy_ssl_name $proxy_host; 
     proxy_set_header Connection "upgrade";
-    proxy_buffering off;
-    proxy_read_timeout 86400;
-    proxy_send_timeout 86400;
+
+    proxy_buffering off;        # 禁用缓存
+    proxy_connect_timeout 30s;  # Nginx连接后端的超时设置
+    proxy_read_timeout 28800;   # 设置后端返回超时时间，8小时
+    proxy_send_timeout 28800;   # 设置请求超时时间，8小时
 }
 
-# 显式匹配 SignalR Hub 路径（可选增强）
 location ~ ^/notifications/hub.*$ {
-    proxy_pass http://127.0.0.1:56666;
+    proxy_pass http://@vaultwarden; # 无需修改，使用了上方的 upstream 映射
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -133,10 +137,14 @@ location ~ ^/notifications/hub.*$ {
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     # 强制覆盖转发给后端的Connection头，防止某些后端不支持WebSocket时出现问题
-    proxy_set_header Connection "upgrade";
-    proxy_buffering off;
-    proxy_read_timeout 86400;
-    proxy_send_timeout 86400;
+    # proxy_set_header Connection $http_connection;
+    # 实现普通 HTTP 请求和 Websocket 请求的动态适配
+    proxy_set_header Connection $connection_upgrade;
+    
+    proxy_buffering off;        # 禁用缓存
+    proxy_connect_timeout 30s;  # Nginx连接后端的超时设置
+    proxy_read_timeout 28800;   # 设置后端返回超时时间，8小时
+    proxy_send_timeout 28800;   # 设置请求超时时间，8小时
 }
 ```
 

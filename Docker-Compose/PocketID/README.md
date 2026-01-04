@@ -12,10 +12,10 @@ SSO 鉴权核心组件，Pocket ID 只支持 通行密钥 与 邮件验证码 �
 mkdir PocketID
 cd PocketID
 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/PocketID/docker-compose.yaml
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/PocketID/docker-compose.yml
 wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/PocketID/.env
 
-nano docker-compose.yaml  # 根据注释修改配置
+nano docker-compose.yml  # 根据注释修改配置
 nano .env  #根据注释修改配置
 
 docker compose up -d
