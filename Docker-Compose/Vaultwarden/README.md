@@ -65,6 +65,11 @@ map $http_upgrade $connection_upgrade {
 #### 3.1.2 在 `server` 块中，添加以下内容
 
 ```nginx
+# 封堵 /admin 路径，提升安全性
+location = /admin {
+    return 404;
+}
+
 client_max_body_size 525M;        # 设置最大上传文件大小
 ssl_session_tickets off;          # 禁用 TLS 会话票证（Session Tickets）功能
 ```
@@ -89,6 +94,9 @@ server {
     listen 443 ssl;
     略
 
+    location = /admin {
+        return 404;
+    }
     client_max_body_size 525M;
     ssl_session_tickets off;
 
