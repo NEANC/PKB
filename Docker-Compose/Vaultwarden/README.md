@@ -1,10 +1,6 @@
-# Vaultwarden SSO
+# Vaultwarden
 
-> [!NOTE]
-> 时间戳  
-> 完成编写并完成测试 - 2025.12.31
-
-Vaultwarden 密码管理器，通过 PocketID 实现 SSO 单点登陆
+Vaultwarden 密码管理器，并可通过 PocketID 实现 SSO 鉴权
 
 ## 1. 部署 Vaultwarden
 
@@ -15,18 +11,22 @@ cd Vaultwarden
 wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Vaultwarden/docker-compose.yml
 wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Vaultwarden/.env
 
+# 若不使用 SSO，请使用 nosso.env 文件
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Vaultwarden/nosso.env
+cp sso.env .env # 重命名为 .env 文件
+
 nano docker-compose.yml  # 根据注释修改配置
 nano .env  #根据注释修改配置
 
 docker compose up -d
 ```
 
-## 2. 配置 PocketID
+## 2. 配置 SSO 登陆
 
-> [!IMPORTANT]
-> 设置 SSO 也无法禁用邮箱+主密码方式，只是提升安全性 —— 在输入主密码前会先进行 PocketID 鉴权
+> [!CAUTION]
+> 设置 SSO 登陆也依旧会要求输入主密码来解密密码库，这是 [Bitwarden 加密策略](https://bitwarden.com/help/using-sso/#tab-master-password-5SgfI0t7yucjtl8qLjp4Y1)要求的，可以等待实现 Vaultwarden [可信设备](https://bitwarden.com/help/add-a-trusted-device/)
 
-新建一个 OIDC 客户端，随后将客户端 ID 和 密钥 填入到 Vaultwarden 的 `.env` 文件中
+在 PocketID 中新建一个 OIDC 客户端，随后将客户端 ID 和 密钥 填入到 Vaultwarden 的 `.env` 文件中
 
 ![点击查看 PocketID OIDC 客户端配置](./../img/PocketID-Client-Vaultwarden.png)
 
@@ -112,22 +112,22 @@ server {
 ```nginx
 location ^~ / {
     proxy_pass http://@vaultwarden; # 无需修改，使用了上方的 upstream 映射
-    proxy_set_header Host $host; 
-    proxy_set_header X-Real-IP $remote_addr; 
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 
-    proxy_set_header REMOTE-HOST $remote_addr; 
-    proxy_set_header Upgrade $http_upgrade; 
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header REMOTE-HOST $remote_addr;
+    proxy_set_header Upgrade $http_upgrade;
     # 强制覆盖转发给后端的Connection头，防止某些后端不支持WebSocket时出现问题
     # proxy_set_header Connection $http_connection;
     # 实现普通 HTTP 请求和 Websocket 请求的动态适配
     proxy_set_header Connection $connection_upgrade;
-    proxy_set_header X-Forwarded-Proto $scheme; 
-    proxy_set_header X-Forwarded-Port $server_port; 
-    proxy_http_version 1.1; 
-    add_header X-Cache $upstream_cache_status; 
-    add_header Cache-Control no-cache; 
-    proxy_ssl_server_name off; 
-    proxy_ssl_name $proxy_host; 
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Port $server_port;
+    proxy_http_version 1.1;
+    add_header X-Cache $upstream_cache_status;
+    add_header Cache-Control no-cache;
+    proxy_ssl_server_name off;
+    proxy_ssl_name $proxy_host;
     proxy_set_header Connection "upgrade";
 
     proxy_buffering off;        # 禁用缓存
@@ -148,7 +148,7 @@ location ~ ^/notifications/hub.*$ {
     # proxy_set_header Connection $http_connection;
     # 实现普通 HTTP 请求和 Websocket 请求的动态适配
     proxy_set_header Connection $connection_upgrade;
-    
+
     proxy_buffering off;        # 禁用缓存
     proxy_connect_timeout 30s;  # Nginx连接后端的超时设置
     proxy_read_timeout 28800;   # 设置后端返回超时时间，8小时

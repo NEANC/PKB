@@ -1,9 +1,5 @@
 # TinyAuth + PocketID
 
-> [!NOTE]
-> 时间戳  
-> 完成编写并完成测试 - 2025.12.31
-
 本文将介绍如何依托 1Panel 使用 PocketID + TinyAuth 并与 Openresty 整合，来实现 SSO 鉴权。
 
 ## 1. 部署 TinyAuth
