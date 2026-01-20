@@ -7,7 +7,7 @@
 
 ## Git 全局设置
 
-在 `Git Bash(以管理员身份运行)` 中执行下列任意命令：
+在 `CMD / PowerShell / Git Bash(以管理员身份运行)` 中执行下列任意命令：
 
 - 仅需要设置一个代理 `Http` 或 `Socks5`
 
@@ -27,7 +27,7 @@
 
 ### 验证设置
 
-验证全局设置，请在 `Git Bash` 中执行下列命令
+验证全局设置，请在 `CMD / PowerShell / Git Bash(以管理员身份运行)` 中执行下列命令
 
 ```Shell
     git config --global -e
@@ -41,14 +41,7 @@
 - 请提前配置 **`SSH 密钥`**
   - 当然也可以在设置代理后再部署
 
-在 `Git Bash(以管理员身份运行)` 中使用 `vim` 进入 `~/.ssh/config` 进行配置
-
-- 仅需要设置一个代理 `Http` 或 `Socks5`
-  - 请将 `<port>` 修改为 代理端口
-
-```Shell
-    vim ~/.ssh/config
-```
+通过资源管理器进入 `%USERPROFILE%\.ssh` 文件夹，打开 `config` 文件进行配置
 
 - 设置 **`Http 代理`** `github.com`，复制粘贴以下内容
 
@@ -58,6 +51,7 @@
     Port 443
     User git
     ProxyCommand connect -H 127.0.0.1:<port> %h %p
+    # 将 `<port>` 修改为 代理端口
 ```
 
 - 设置 **`Socks5 代理`** `github.com`，复制粘贴以下内容
@@ -68,11 +62,8 @@
     Port 443
     User git
     ProxyCommand connect -S 127.0.0.1:<port> %h %p
+    # 将 `<port>` 修改为 代理端口
 ```
-
-随后按 `ESC 键` 进入 `VIM 命令模式`，输入 `:wq` 保存退出
-
-- 可使用 `:qa!` 强制保存退出
 
 ### 验证 SSH 代理设置
 
