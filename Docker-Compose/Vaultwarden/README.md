@@ -5,8 +5,7 @@ Vaultwarden 密码管理器，并可通过 PocketID 实现 SSO 鉴权
 ## 1. 部署 Vaultwarden
 
 ```bash
-mkdir Vaultwarden
-cd Vaultwarden
+mkdir Vaultwarden && cd Vaultwarden
 
 wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Vaultwarden/docker-compose.yml
 wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Vaultwarden/.env
@@ -35,6 +34,8 @@ docker compose up -d
 ## 3. 反向代理设置
 
 ### 3.1 Openresty 配置文件
+
+使用 80 端口作为反代端口，避免 upstream 失效
 
 #### 3.1.1 在 `server` 块前，添加以下内容
 

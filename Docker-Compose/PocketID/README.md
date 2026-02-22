@@ -5,8 +5,7 @@ SSO 鉴权核心组件，Pocket ID 只支持 通行密钥 与 邮件验证码 �
 ## 1. 部署 Pocket ID
 
 ```bash
-mkdir PocketID
-cd PocketID
+mkdir PocketID && cd PocketID
 
 wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/PocketID/docker-compose.yml
 wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/PocketID/.env

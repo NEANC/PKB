@@ -5,8 +5,7 @@
 ## 1. 部署 TinyAuth
 
 ```bash
-mkdir tinyauth
-cd tinyauth
+mkdir tinyauth && cd tinyauth
 
 wget https://raw.githubusercontent.com/NEANC/PKB/main/TinyAuth/docker-compose.yml
 wget https://raw.githubusercontent.com/NEANC/PKB/main/TinyAuth/.env
