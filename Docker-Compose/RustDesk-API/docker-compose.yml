@@ -1,0 +1,24 @@
+services:
+  rustdesk:
+    container_name: rustdesk-server-s6
+    image: lejianwen/rustdesk-server-s6:latest
+    ports:
+      - 21114:21114
+      - 21115:21115
+      - 21116:21116
+      - 21116:21116/udp
+      - 21117:21117
+      - 21118:21118
+      - 21119:21119
+    env_file: .env
+    volumes:
+      - ./data/rustdesk/server:/data
+      - ./data/rustdesk/api:/app/data
+      # - /tmp/log/rustdeskapi:/app/runtime/ #挂载日志文件，可配合fail2ban开启登录防护
+    restart: unless-stopped
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
