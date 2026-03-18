@@ -7,8 +7,8 @@
 ```bash
 mkdir tinyauth && cd tinyauth
 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/TinyAuth/docker-compose.yml
-wget https://raw.githubusercontent.com/NEANC/PKB/main/TinyAuth/.env
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth/docker-compose.yml
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth/.env
 
 nano docker-compose.yml  # 根据注释修改配置
 nano .env  #根据注释修改配置

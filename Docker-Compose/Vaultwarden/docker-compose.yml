@@ -6,6 +6,7 @@ services:
     env_file: .env
     volumes:
       - ./data:/data
+      - ./log:/log
     ports:
       - 56666:80
     networks:
