@@ -1,0 +1,15 @@
+services:
+  komari:
+    image: ghcr.io/komari-monitor/komari:latest
+    container_name: komari
+    ports:
+      - "25774:25774"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
