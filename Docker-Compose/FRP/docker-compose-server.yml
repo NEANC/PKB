@@ -1,0 +1,11 @@
+services:
+  frps:
+    container_name: frps
+    image: snowdreamtech/frps:0.67.0
+    network_mode: host
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./data/frps.toml:/etc/frp/frps.toml
+      - ./data/ssl:/etc/frp/ssl

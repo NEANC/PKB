@@ -1,0 +1,22 @@
+services:
+  # 第一个frpc容器：连接服务器A
+  frpc-A:
+    image: snowdreamtech/frpc:0.67.0
+    container_name: frpc-A
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./frpc_A.toml:/etc/frp/frpc.toml
+    network_mode: host
+
+  # 第二个frpc容器：连接服务器B
+  frpc-B:
+    image: snowdreamtech/frpc:0.67.0
+    container_name: frpc-B
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./frpc_B.toml:/etc/frp/frpc.toml
+    network_mode: host

@@ -1,0 +1,21 @@
+# frpc_B.toml
+serverAddr = "127.0.0.1"    # 服务端的域名/公网IP
+serverPort = 7000           # 服务端的frps端口
+
+auth.method = "token"       # 验证方式
+auth.token = "key"          # 加密密钥，运行命令生成：openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 32
+
+[[proxies]]
+name = "web"                # 代理名称
+type = "tcp"                # 代理类型，可选值为 tcp, udp, http, https, tcpmux, stcp, sudp, xtcp。
+enabled	= "true"            # 是否启用该代理
+localIP = "127.0.0.1"       # 被代理的本地服务 IP
+localPort = 33000           # 被代理的本地服务端口
+remotePort = 11000          # 服务端绑定的端口（本地端口映射到该服务端端口）
+
+[[proxies]]
+name = "ssh"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 22
+remotePort = 23
