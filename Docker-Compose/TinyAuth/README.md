@@ -18,6 +18,9 @@ docker compose up -d
 
 ## 2. 配置 PocketID
 
+> [!IMPORTANT]
+> 在本资料库中了解如何部署 [PocketID](../PocketID/README.md)
+
 新建一个 OIDC 客户端，随后将客户端 ID 和 密钥、令牌 URL、回调 URL、等填入到 TinyAuth 的 `.env` 文件中
 
 ![点击查看 PocketID OIDC 客户端配置](./../img/PocketID-Client-TinyAuth.png)
