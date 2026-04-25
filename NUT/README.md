@@ -32,7 +32,7 @@ lsusb
 nano /etc/nut/nut.conf
 
 MODE=netserver
-# standalone - 单机模式、netserver - 服务端、netclient - 客户端
+# standalone - 单机模式；netserver - 服务端模式；netclient - 客户端模式
 ```
 
 ### 2. 配置 UPS 硬件
@@ -102,9 +102,9 @@ DEADTIME 15
 POWERDOWNFLAG /etc/killpower
 
 # 指定通知执行的脚本
-NOTIFYCMD /etc/nut/ups_notify.sh
+NOTIFYCMD /etc/nut/NUT_ServerChan.sh
 
-# 触发通知（SYSLOG+WALL+EXEC）
+# 触发通知，SYSLOG写入系统日志，WALL广播发送给其他客户端，EXEC将参数传递给脚本
 NOTIFYFLAG ONLINE   SYSLOG+WALL+EXEC
 NOTIFYFLAG ONBATT   SYSLOG+WALL+EXEC
 NOTIFYFLAG LOWBATT  SYSLOG+WALL+EXEC
@@ -115,12 +115,12 @@ NOTIFYFLAG SHUTDOWN SYSLOG+WALL+EXEC
 ### 6. 配置 ServerChan 通知脚本
 
 ```bash
-wget https://raw.githubusercontent.com/NEANC/PKB/main/NUT/ups_notify.sh
+wget https://raw.githubusercontent.com/NEANC/PKB/main/NUT/NUT_ServerChan.sh
 
-nano /usr/local/bin/ups_notify.sh
+nano /etc/nut/NUT_ServerChan.sh
 
-sudo chmod +x /etc/nut/ups_notify.sh
-sudo chown root:root /etc/nut/ups_notify.sh
+sudo chmod +x /etc/nut/NUT_ServerChan.sh
+sudo chown root:root /etc/nut/NUT_ServerChan.sh
 ```
 
 ### 7. 启动并验证服务
@@ -207,18 +207,18 @@ upsc ups代号@localhost
 nano /etc/nut/upsmon.conf
 
 # 指定通知执行的脚本
-NOTIFYCMD /etc/nut/ups_notify.sh
+NOTIFYCMD /etc/nut/NUT_ServerChan.sh
 ```
 
-添加 `ups_notify.sh` 脚本：
+添加 `NUT_ServerChan.sh` 脚本：
 
 ```bash
-wget https://raw.githubusercontent.com/NEANC/PKB/main/NUT/ups_notify.sh
+wget https://raw.githubusercontent.com/NEANC/PKB/main/NUT/NUT_ServerChan.sh
 
-nano /usr/local/bin/ups_notify.sh
+nano /etc/nut/NUT_ServerChan.sh
 
-sudo chmod +x /etc/nut/ups_notify.sh
-sudo chown root:root /etc/nut/ups_notify.sh
+sudo chmod +x /etc/nut/NUT_ServerChan.sh
+sudo chown root:root /etc/nut/NUT_ServerChan.sh
 
 sudo systemctl restart nut-server nut-monitor
 ```

@@ -1,8 +1,9 @@
 #!/bin/bash
 # NUT UPS Push in ServerChan
-SENDKEY="your_serverchan_sendkey"
-API_URL="https://sctapi.ftqq.com/${SENDKEY}.send"
 
+SENDKEY="serverchan_sendkey"
+
+API_URL="https://sctapi.ftqq.com/${SENDKEY}.send"
 NOTIFY_TYPE="$NOTIFYTYPE"
 UPS_HOST="PVE"
 
