@@ -2,6 +2,7 @@ services:
   komari:
     image: ghcr.io/komari-monitor/komari:latest
     container_name: komari
+    env_file: .env
     ports:
       - "25774:25774"
     volumes:

@@ -5,11 +5,17 @@
 ## 1. 部署 Komari
 
 ```bash
+# 创建目录并进入
 mkdir komari && cd komari
 
 wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Komari/docker-compose.yml
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Komari/.env
 
+nano .env
 docker compose up -d
+
+# 若未配置账户与密码，请从日志中获取生成的管理员账户与密码
+docker compose logs komari
 ```
 
 ## 2. 反向代理设置
