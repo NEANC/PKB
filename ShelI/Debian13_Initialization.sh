@@ -250,14 +250,7 @@ init_ssh_keys() {
         pubkey="$SSH_PUB_KEY_FROM_CLI"
         log_file "使用命令行提供的 SSH 公钥"
     else
-        # 交互式读取（需要终端）
-        if [[ ! -t 0 ]]; then
-            echo_line "  ${ICON_ERROR} ${RED}未提供 SSH 公钥，且标准输入不是终端（可能是管道执行）。${NC}"
-            echo_line "  ${ICON_ERROR} ${RED}请使用 -ssh 参数传入公钥，例如：${NC}"
-            echo_line "  ${WHITE}  curl ... | sudo bash -s -- -ssh \"ssh-ed25519 AAAA...\"${NC}"
-            exit 1
-        fi
-
+        # 交互式读取：强制从 /dev/tty 获取输入（兼容管道执行）
         _cleanup_spinner
         echo_line ""
         echo_line "  🔑 ${CYAN}请粘贴你的 SSH 公钥${NC}"
@@ -265,13 +258,20 @@ init_ssh_keys() {
         echo_line "  ─────────────────────────────────────────────────"
         echo -n "  > "
 
-        # 使用 head -1 安全读取，避免多行残留
-        pubkey=$(head -1) || true
+        # 直接从终端设备读取一行
+        read -r pubkey < /dev/tty || true
         if [[ -z "$pubkey" ]]; then
             echo_line "  ${ICON_ERROR} ${RED}未输入公钥，脚本退出${NC}"
             exit 1
         fi
-        log_file "已从交互式输入读取公钥"
+
+        # 格式校验：须以 ssh- 开头，且至少包含一个空格和后续内容
+        if [[ ! "$pubkey" =~ ^ssh-(rsa|ed25519|ecdsa) ]] || \
+           [[ "$pubkey" != *" "* ]]; then
+            echo_line "  ${ICON_ERROR} ${RED}公钥格式无效！必须是一行完整公钥。${NC}"
+            exit 1
+        fi
+        log_file "已从交互式输入读取公钥（通过 /dev/tty）"
     fi
 
     # 写入公钥
