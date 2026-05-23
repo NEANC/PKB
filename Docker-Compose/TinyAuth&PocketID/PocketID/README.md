@@ -7,8 +7,8 @@ SSO 鉴权核心组件，Pocket ID 只支持 通行密钥 与 邮件验证码 �
 ```bash
 mkdir PocketID && cd PocketID
 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/PocketID/docker-compose.yml
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/PocketID/.env
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth&PocketID/PocketID/docker-compose.yml
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth&PocketID/PocketID/.env
 
 nano docker-compose.yml  # 根据注释修改配置
 nano .env  #根据注释修改配置
@@ -51,6 +51,22 @@ server {
 ### 3.2 Nginx 源文配置
 
 使用默认
+
+## 4. 使用脚本添加 GeoLite2-City.mmdb
+
+在 PocketID 目录下运行
+
+```bash
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth&PocketID/PocketID/download_GeoLite2-City.mmdb.sh
+
+chmod +x download_GeoLite2-City.mmdb.sh
+
+./download_GeoLite2-City.mmdb.sh
+```
+
+### 4.1 使用 1Panel 设置计划任务
+
+![1Panel 添加计划任务](../../img/1Panel-PocketID-download_GeoLite2-City.mmdb.sh.png)
 
 ## 参考链接
 

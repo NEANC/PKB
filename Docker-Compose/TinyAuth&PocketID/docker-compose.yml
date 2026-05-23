@@ -1,0 +1,34 @@
+services:
+  pocket-id:
+    image: ghcr.io/pocket-id/pocket-id:v2
+    container_name: pocket-id
+    restart: unless-stopped
+    env_file: .pocketid-env
+    ports:
+      - "1411:1411"
+    healthcheck:
+      test: [ "CMD", "/app/pocket-id", "healthcheck" ]
+      interval: 1m30s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
+    volumes:
+      - "./pocketid-data:/app/data"
+    networks:
+      - proxy
+
+  tinyauth:
+    image: ghcr.io/steveiliop56/tinyauth:v5
+    container_name: tinyauth
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .tinyauth-env
+    volumes:
+      - "./tinyauth-data:/data"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

@@ -1,0 +1,90 @@
+# tinyauth 配置
+
+# 反代地址
+TINYAUTH_APPURL=https://tinyauth.example.com
+
+# 自定义内容
+# 登录页面标题
+TINYAUTH_UI_TITLE=欢迎访问 Tinyauth SSO
+# 忘记密码提示
+TINYAUTH_UI_FORGOTPASSWORDMESSAGE="请联系系统管理员。"
+# 背景图片
+# BACKGROUND_IMAGE=<地址>/background.png
+
+# cookie 设置
+# 设置是否仅通过安全连接发送 Cookie
+TINYAUTH_AUTH_SECURECOOKIE=true
+# cookie 过期时间，单位为秒，当前为 7 天
+TINYAUTH_AUTH_SESSIONEXPIRY=604800
+
+# tinyauth 自托管密码配置
+# 运行命令生成加密后的密码：echo $(openssl 密码 -nB 用户名) | sed -e s/\$/\$\$/g
+# TINYAUTH_AUTH_USERS=<用户>:<加密后的密码>
+# 指定用户配置文件路径，文件格式为每行一个用户，格式为 <用户>:<加密后的密码>
+# TINYAUTH_AUTH_USERSFILE=/data/users.txt
+# 最大尝试次数
+TINYAUTH_AUTH_LOGINMAXRETRIES=3
+# 登陆错误后需要等待再试时间，单位为秒，当前为 5 分钟
+TINYAUTH_AUTH_LOGINTIMEOUT=900
+
+# Pocket ID 设置
+# 显示在登录页面上的名称
+TINYAUTH_OAUTH_PROVIDERS_POCKETID_NAME=Pocket ID
+# Pocket ID 客户端ID
+TINYAUTH_OAUTH_PROVIDERS_POCKETID_CLIENTID=pocket-id-client-id
+# Pocket ID 客户端密钥
+TINYAUTH_OAUTH_PROVIDERS_POCKETID_CLIENTSECRET=pocket-id-client-secret
+# Pocket ID 认证 URL
+TINYAUTH_OAUTH_PROVIDERS_POCKETID_AUTHURL=https://pocketid.example.com/authorize
+# Pocket ID 令牌 URL，本示例为同一网络通讯时使用，可越过 1Panel WAF 拦截
+TINYAUTH_OAUTH_PROVIDERS_POCKETID_TOKENURL=http://pocket-id:1411/api/oidc/token
+# Pocket ID 用户信息 URL，本示例为同一网络通讯时使用，可越过 1Panel WAF 拦截
+TINYAUTH_OAUTH_PROVIDERS_POCKETID_USERINFOURL=http://pocket-id:1411/api/oidc/userinfo
+# Pocket ID 回调URL
+TINYAUTH_OAUTH_PROVIDERS_POCKETID_REDIRECTURL=https://tinyauth.example.com/api/oauth/callback/pocketid
+# Pocket ID 作用域，无需修改
+TINYAUTH_OAUTH_PROVIDERS_POCKETID_SCOPES=openid email profile groups
+
+# 白名单，指定允许登录的电子邮件地址，逗号分隔
+TINYAUTH_OAUTH_WHITELIST=<邮箱1>,<邮箱2>
+
+
+# ACL/访问控制 配置
+
+# 请修改 [APP] 为实际应用名称
+# TINYAUTH_APPS_[APP]_CONFIG_DOMAIN=<应用域名>
+# 允许用户访问该应用的白名单，不适用于来着 LDAP 的用户。
+# TINYAUTH_APPS_[APP]_USERS_ALLOW=user1,user2
+# 限制用户访问该应用的黑名单，不适用于来着 LDAP 的用户。
+# TINYAUTH_APPS_[APP]_USERS_BLOCK=user3,user4
+
+# 使用 OIDC 组进行访问控制（白名单机制）
+# 某些 OIDC 服务器（如 Pocket ID）支持在 OIDC 响应中包含用户组。若要使用用户组，请确保在 OAuth 提供商配置中包含 groups 作用域。
+# 注意：该标签仅适用于自定义 OAuth 提供商，不适用于 Google 或 GitHub
+# TINYAUTH_APPS_[APP]_OAUTH_GROUPS=admin
+
+# 使用 OIDC 组返回的邮箱进行访问控制（白名单机制）
+# TINYAUTH_APPS_[APP]_OAUTH_WHITELIST=<邮箱1>,<邮箱2>
+
+# 基于 IP 的访问控制
+# 允许访问的 IP 地址或子网，逗号分隔
+# TINYAUTH_APPS_[APP]_IP_ALLOW: 10.10.5.5,10.10.10.0/24
+# 禁止访问的 IP 地址或子网，逗号分隔
+# TINYAUTH_APPS_[APP]_IP_BLOCK: 192.168.1.1,192.168.0.0/16
+# 禁用特定 IP 地址或子网的身份验证，逗号分隔
+# TINYAUTH_APPS_[APP]_IP_BYPASS: 10.10.5.5,10.10.10.0/24
+
+# --------------------------
+# 示例：配置两个应用，网页1 仅允许 user10 访问，网页2 禁止 user组 访问
+
+# 网页1（仅允许 user10 访问）
+# TINYAUTH_APPS_WEB1_CONFIG_DOMAIN=shturl.cc/5gPyrZlziv
+# TINYAUTH_APPS_WEB1_OAUTH_WHITELIST=<邮箱2>
+
+# 网页2
+# TINYAUTH_APPS_WEB2_CONFIG_DOMAIN=shturl.cc/ZLALG82hIA
+# TINYAUTH_APPS_WEB2_OAUTH_GROUPS=user
+# --------------------------
+
+# 时区设置
+TZ=Asia/Shanghai

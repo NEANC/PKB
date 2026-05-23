@@ -1,4 +1,4 @@
-# TinyAuth + PocketID
+# TinyAuth
 
 本文将介绍如何依托 1Panel 使用 PocketID + TinyAuth 并与 Openresty 整合，来实现 SSO 鉴权。
 
@@ -7,8 +7,8 @@
 ```bash
 mkdir tinyauth && cd tinyauth
 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth/docker-compose.yml
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth/.env
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth&PocketID/TinyAuth/docker-compose.yml
+wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth&PocketID/TinyAuth/.env
 
 nano docker-compose.yml  # 根据注释修改配置
 nano .env  #根据注释修改配置

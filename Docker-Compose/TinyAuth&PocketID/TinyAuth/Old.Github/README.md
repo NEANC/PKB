@@ -12,9 +12,9 @@
 mkdir tinyauth
 cd tinyauth
 
-wget 'https://raw.githubusercontent.com/NEANC/PKB/main/PocketID+TinyAuth/old.Github/docker-compose.yaml'
-wget 'https://raw.githubusercontent.com/NEANC/PKB/main/PocketID+TinyAuth/old.Github/.env'
-wget 'https://raw.githubusercontent.com/NEANC/PKB/main/PocketID+TinyAuth/old.Github/users'
+wget 'https://raw.githubusercontent.com/NEANC/PKB/main/PocketID&TinyAuth/old.Github/docker-compose.yaml'
+wget 'https://raw.githubusercontent.com/NEANC/PKB/main/PocketID&TinyAuth/old.Github/.env'
+wget 'https://raw.githubusercontent.com/NEANC/PKB/main/PocketID&TinyAuth/old.Github/users'
 
 nano docker-compose.yaml  # 根据注释修改配置
 nano .env  # 根据注释修改配置
