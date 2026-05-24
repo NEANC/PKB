@@ -63,12 +63,9 @@ server {
 ```bash
 wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/TinyAuth&PocketID/PocketID/download_GeoLite2-City.mmdb.sh"
 
-nano download_GeoLite2-City.mmdb.sh
-```
+# 更改脚本中的目标目录为 pocketid_data，若更改了 docker-compose.yml 中的 volumes 映射，请更改成对应目录
+sed -i 's/TARGET_DIR="${SCRIPT_DIR}\/data"/TARGET_DIR="${SCRIPT_DIR}\/pocketid_data"/g' download_GeoLite2-City.mmdb.sh
 
-将 `TARGET_DIR="${SCRIPT_DIR}/data"` 修改为 `TARGET_DIR="${SCRIPT_DIR}/pocketid_data"` 保存退出后执行下一段代码
-
-```bash
 chmod +x download_GeoLite2-City.mmdb.sh
 
 ./download_GeoLite2-City.mmdb.sh
