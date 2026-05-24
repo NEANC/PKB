@@ -14,7 +14,7 @@ wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/Vaultwar
 wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/Vaultwarden/nosso.env"
 cp sso.env .env # 重命名为 .env 文件
 
-nano docker-compose.yml  # 根据注释修改配置
+nano docker-compose.yml  # 更改到最新版本号
 nano .env  #根据注释修改配置
 
 docker compose up -d
