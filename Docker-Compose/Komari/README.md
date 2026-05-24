@@ -8,8 +8,8 @@
 # 创建目录并进入
 mkdir komari && cd komari
 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Komari/docker-compose.yml
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Komari/.env
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/Komari/docker-compose.yml"
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/Komari/.env"
 
 nano .env
 docker compose up -d

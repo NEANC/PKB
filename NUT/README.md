@@ -115,7 +115,7 @@ NOTIFYFLAG SHUTDOWN SYSLOG+WALL+EXEC
 ### 6. 配置 ServerChan 通知脚本
 
 ```bash
-wget https://raw.githubusercontent.com/NEANC/PKB/main/NUT/NUT_ServerChan.sh
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/NUT/NUT_ServerChan.sh"
 
 nano /etc/nut/NUT_ServerChan.sh
 
@@ -213,7 +213,7 @@ NOTIFYCMD /etc/nut/NUT_ServerChan.sh
 添加 `NUT_ServerChan.sh` 脚本：
 
 ```bash
-wget https://raw.githubusercontent.com/NEANC/PKB/main/NUT/NUT_ServerChan.sh
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/NUT/NUT_ServerChan.sh"
 
 nano /etc/nut/NUT_ServerChan.sh
 

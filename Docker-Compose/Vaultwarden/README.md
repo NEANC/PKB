@@ -7,11 +7,11 @@ Vaultwarden 密码管理器，并可通过 PocketID 实现 SSO 鉴权
 ```bash
 mkdir Vaultwarden && cd Vaultwarden
 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Vaultwarden/docker-compose.yml
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Vaultwarden/.env
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/Vaultwarden/docker-compose.yml"
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/Vaultwarden/.env"
 
 # 若不使用 SSO，请使用 nosso.env 文件
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/Vaultwarden/nosso.env
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/Vaultwarden/nosso.env"
 cp sso.env .env # 重命名为 .env 文件
 
 nano docker-compose.yml  # 根据注释修改配置

@@ -7,9 +7,9 @@
 ```bash
 mkdir TinyAuth&PocketID && cd TinyAuth&PocketID
 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth&PocketID/docker-compose.yml 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth&PocketID/.tinyauth-env 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth&PocketID/.pocketid-env
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/TinyAuth&PocketID/docker-compose.yml" 
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/TinyAuth&PocketID/.tinyauth-env" 
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/TinyAuth&PocketID/.pocketid-env"
 
 nano docker-compose.yml  # 根据注释修改配置
 nano .tinyauth-env  #根据注释修改配置
@@ -61,7 +61,7 @@ server {
 在 TinyAuth&PocketID 目录下运行
 
 ```bash
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/TinyAuth&PocketID/PocketID/download_GeoLite2-City.mmdb.sh
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/TinyAuth&PocketID/PocketID/download_GeoLite2-City.mmdb.sh"
 
 nano download_GeoLite2-City.mmdb.sh
 ```

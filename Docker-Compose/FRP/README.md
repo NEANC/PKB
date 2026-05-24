@@ -10,7 +10,7 @@
 ```bash
 mkdir frps && cd frps
 
-wget -O docker-compose.yml https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/FRP/docker-compose-server.yml
+wget -O docker-compose.yml "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/FRP/docker-compose-server.yml"
 
 docker compose up -d
 ```
@@ -30,9 +30,9 @@ FRPS 的 Openresty 配置文件 与 Nginx 源文配置 使用默认即可
 ```bash
 mkdir frpc && cd frpc
 
-wget -O docker-compose.yml https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/FRP/docker-compose-client.yml
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/FRP/frpc_A.toml
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/FRP/frpc_B.toml
+wget -O docker-compose.yml "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/FRP/docker-compose-client.yml"
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/FRP/frpc_A.toml"
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/FRP/frpc_B.toml"
 
 # 根据注释修改配置
 nano docker-compose.yml

@@ -7,8 +7,8 @@
 ```bash
 mkdir rustdesk-api && cd rustdesk-api
 
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/RustDesk-API/docker-compose.yml
-wget https://raw.githubusercontent.com/NEANC/PKB/main/Docker-Compose/RustDesk-API/.env
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/RustDesk-API/docker-compose.yml"
+wget "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/RustDesk-API/.env"
 
 nano docker-compose.yml  # 根据注释修改配置
 nano .env  #根据注释修改配置
