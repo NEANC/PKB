@@ -1,0 +1,19 @@
+# 主端口
+bindAddr = "0.0.0.0"
+bindPort = 7000
+
+
+auth.method = "token"       # 验证方式
+auth.token = "key"          # 加密密钥，运行命令生成：openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 32
+
+# web 服务
+webServer.addr = "0.0.0.0"
+webServer.port = 7200            # web 端口
+webServer.user = "Username"      # 用户名
+webServer.password = "Password"  # 登陆密码
+
+# tls
+#transport.tls.force = true
+#transport.tls.certFile = "/etc/frp/ssl/server.crt"
+#transport.tls.keyFile = "/etc/frp/ssl/server.key"
+#transport.tls.trustedCaFile = "/etc/frp/ssl/ca.crt"

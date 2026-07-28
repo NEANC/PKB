@@ -8,9 +8,13 @@
 ## 1. 在服务端部署 FRPS
 
 ```bash
-mkdir frps && cd frps
+mkdir frps frps/data && cd frps
 
 wget -O docker-compose.yml "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/FRP/docker-compose-server.yml"
+
+wget -O frps.toml "https://raw.githubusercontent.com/NEANC/PKB/master/Docker-Compose/FRP/frps.toml"
+
+nano frps.toml
 
 docker compose up -d
 ```

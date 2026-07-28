@@ -7,5 +7,5 @@ services:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - ./data/frps.toml:/etc/frp/frps.toml
+      - ./frps.toml:/etc/frp/frps.toml
       - ./data/ssl:/etc/frp/ssl
