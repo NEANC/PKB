@@ -195,7 +195,11 @@ Entropy:     5.221928
 
 ## 附录
 
-### PS.1 Gitleaks 常用命令
+### PS.1 GitHub Desktop 打开 Git hook
+
+![GitHub Desktop Git hook](IMG/GitHubDesktop-Githook.jpg)
+
+### PS.2 Gitleaks 常用命令
 
 ```bash
 # 扫描某个文件
@@ -220,7 +224,7 @@ gitleaks detect --source . --commit-since=2023-01-01 --commit-until=2024-01-01
 gitleaks detect --repo-url=https://github.com/your-org/your-repo
 ```
 
-### PS.2 配置 PowerShell 5.1 颜色显示
+### PS.3 配置 PowerShell 5.1 颜色显示
 
 ```pwsh
 Set-ItemProperty -Path "HKCU:\Console" -Name "VirtualTerminalLevel" -Value 1 -Type DWord
