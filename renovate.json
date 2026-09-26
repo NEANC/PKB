@@ -2,5 +2,19 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "description": "补丁版本和小版本：打上 renovate 标签，由工作流自动合并",
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "addLabels": ["renovate"]
+    },
+    {
+      "description": "大版本更新：打上 major 标签，仅创建 PR 需人工审核",
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["major", "renovate"]
+    }
   ]
 }

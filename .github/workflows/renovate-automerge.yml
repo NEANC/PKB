@@ -1,0 +1,94 @@
+name: Renovate Auto Merge
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 需要处理的 PR 编号
+        required: true
+        type: number
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+
+jobs:
+  check-labels:
+    name: Check labels
+    if: |
+      github.actor == 'renovate[bot]' ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      enable: ${{ steps.check-labels.outputs.enable }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Check for major label
+        id: check-labels
+        run: |
+          pr_labels=$(gh pr view $PR_NUMBER --json labels --jq '[.labels[].name] | join(",")')
+          if [[ $pr_labels =~ "major" ]]; then
+            echo "❌ PR has major label"
+            echo "enable=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ PR does not have major label"
+            echo "enable=true" >> $GITHUB_OUTPUT
+          fi
+      
+      # - name: Add reviewer and comment for major PR
+      #   if: steps.check-labels.outputs.enable == 'false'
+      #   run: |
+      #     gh pr edit $PR_NUMBER --add-reviewer ${{ github.repository_owner }}
+      #     gh pr edit $PR_NUMBER --add-assignee ${{ github.repository_owner }}
+      
+      - name: remove labels
+        run: |
+          pr_labels=$(gh pr view $PR_NUMBER --json labels --jq '[.labels[].name] | join(",")')
+          IFS=',' read -ra labels_array <<< "$pr_labels"
+          for label in "${labels_array[@]}"; do
+            if [[ "$label" == "major" ]]; then
+              echo "Keeping label: $label"
+              continue
+            fi
+            echo "Removing label: $label"
+            gh pr edit $PR_NUMBER --remove-label="$label"
+          done
+
+  merge-prs:
+    name: Auto Merge the PR
+    runs-on: ubuntu-latest
+    needs:
+      - check-labels
+    if: |
+      needs.check-labels.outputs.enable == 'true'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.base_ref || github.ref_name }}
+      
+      - name: Merge PR
+        run: |
+          max_attempts=5
+          for attempt in $(seq 1 $max_attempts); do
+            if gh pr merge $PR_NUMBER --squash --delete-branch --body ""; then
+              echo "✅ Merge PR #$PR_NUMBER Success"
+              exit 0
+            else
+              echo "⚠️ Merge PR #$PR_NUMBER Failed ($attempt / $max_attempts)"
+              sleep 5
+            fi
+          done
