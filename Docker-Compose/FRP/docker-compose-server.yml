@@ -1,7 +1,7 @@
 services:
   frps:
     container_name: frps
-    image: snowdreamtech/frps:0.67.0
+    image: snowdreamtech/frps:0.69.1
     network_mode: host
     restart: always
     environment:
