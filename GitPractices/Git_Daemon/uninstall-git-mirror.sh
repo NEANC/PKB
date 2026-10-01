@@ -4,7 +4,7 @@
 # 版本: 1.0
 # 功能:
 #   - 停止并移除 git-daemon systemd 服务
-#   - 删除同步脚本、access-hook、hosts 刷新脚本
+#   - 删除同步脚本与 hosts 刷新脚本
 #   - 删除配置、镜像仓库、日志
 #   - 清理 git 用户与 root 的 cron 任务
 #   - 可选清理 /etc/hosts 中的 GitHub520 段
@@ -18,7 +18,6 @@ CONF_DIR="/etc/git-mirror"
 INSTALL_PATHS_FILE="${CONF_DIR}/install.paths"
 LOG_DIR="/var/log/git-mirror"
 SYNC_SCRIPT="/usr/local/bin/git-mirror-sync.sh"
-HOOK_SCRIPT="/usr/local/bin/git-access-hook.sh"
 HOSTS_SCRIPT="/usr/local/bin/update-github-hosts.sh"
 SERVICE_FILE="/etc/systemd/system/git-daemon.service"
 LOCK_FILE="/var/lock/git-mirror-sync.lock"
@@ -99,7 +98,7 @@ if [[ -f "$INSTALL_PATHS_FILE" ]]; then
     # shellcheck disable=SC1090
     source "$INSTALL_PATHS_FILE"
 fi
-for path_var in SYNC_SCRIPT HOOK_SCRIPT HOSTS_SCRIPT; do
+for path_var in SYNC_SCRIPT HOSTS_SCRIPT; do
     path_value="${!path_var:-}"
     if [[ "$path_value" != /* || "$path_value" == *$'\n'* ]]; then
         error "安装路径配置无效：$path_var"
@@ -126,7 +125,6 @@ echo "将执行以下操作："
 echo "  - 停止并禁用 git-daemon 服务"
 echo "  - 删除 unit 文件: $SERVICE_FILE"
 echo "  - 删除同步脚本:   $SYNC_SCRIPT"
-echo "  - 删除 access-hook: $HOOK_SCRIPT"
 echo "  - 删除 hosts 脚本:  $HOSTS_SCRIPT"
 echo "  - 删除配置目录:   $CONF_DIR"
 [[ "$CLEAN_DATA" == "yes" ]] && echo "  - 删除镜像仓库:   $MIRROR_ROOT"
@@ -217,7 +215,7 @@ systemctl reset-failed 2>/dev/null || true
 
 info "[2/8] 删除脚本文件 ..."
 
-for f in "$SYNC_SCRIPT" "$HOOK_SCRIPT" "$HOSTS_SCRIPT"; do
+for f in "$SYNC_SCRIPT" "$HOSTS_SCRIPT"; do
     if [[ -f "$f" ]]; then
         rm -f "$f"
         ok "已删除 $f"
@@ -382,7 +380,7 @@ ok "已删除同步锁文件"
 # 残留检查
 echo "残留检查："
 residual=0
-for path in "$SYNC_SCRIPT" "$HOOK_SCRIPT" "$HOSTS_SCRIPT" "$SERVICE_FILE" "$LOCK_FILE"; do
+for path in "$SYNC_SCRIPT" "$HOSTS_SCRIPT" "$SERVICE_FILE" "$LOCK_FILE"; do
     if [[ -e "$path" ]]; then
         warn "  仍存在: $path"
         residual=1

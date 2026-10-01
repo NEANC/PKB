@@ -6,7 +6,6 @@
 #   - 创建 git 用户与目录结构
 #   - 安装 git-mirror-sync.sh（代理 → 直连 → SSH 三级回退）
 #   - 安装 update-github-hosts.sh（自动刷新 GitHub hosts）
-#   - 安装 git-access-hook.sh（屏蔽 owner/repo 完整路径）
 #   - 配置 git-daemon systemd 服务
 #   - 注册 cron 定时任务（同步 + hosts 刷新）
 # =============================================================
@@ -28,7 +27,6 @@ CONF_DIR="/etc/git-mirror"
 LOG_DIR="/var/log/git-mirror"
 SCRIPTS_DIR="/usr/local/bin"
 SYNC_SCRIPT="${SCRIPTS_DIR}/git-mirror-sync.sh"
-HOOK_SCRIPT="${SCRIPTS_DIR}/git-access-hook.sh"
 HOSTS_SCRIPT="${SCRIPTS_DIR}/update-github-hosts.sh"
 HOSTS_LOG="/var/log/git-mirror/hosts.log"
 HOSTS_CRON="0 3 * * *"
@@ -129,7 +127,6 @@ if [[ "$SCRIPTS_DIR" != /* || "$SCRIPTS_DIR" == */ || "$SCRIPTS_DIR" == *$'\n'* 
     exit 1
 fi
 SYNC_SCRIPT="${SCRIPTS_DIR}/git-mirror-sync.sh"
-HOOK_SCRIPT="${SCRIPTS_DIR}/git-access-hook.sh"
 HOSTS_SCRIPT="${SCRIPTS_DIR}/update-github-hosts.sh"
 
 if [[ ! "$GIT_PORT" =~ ^[0-9]{1,5}$ ]]; then
@@ -146,6 +143,24 @@ if [[ -z "$LISTEN_ADDRESS" || "$LISTEN_ADDRESS" == *[!a-zA-Z0-9.:_-]* ]]; then
     exit 1
 fi
 
+# 选择首个已发布仓库用于部署后的连接提示，跳过空行与注释行。
+select_connection_repo() {
+    local root="$1" list="$2" line repo
+    [ -f "$list" ] || return 1
+    while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%$'\r'}"
+        line="${line%%#*}"
+        repo=""
+        read -r repo _ <<< "$line"
+        [ -n "$repo" ] || continue
+        repo="${repo%.git}"
+        [ -f "$root/$repo.git/git-daemon-export-ok" ] || continue
+        printf '%s\n' "$repo"
+        return 0
+    done < "$list"
+    return 0
+}
+
 info "========== Git 镜像节点部署开始 =========="
 info "仓库来源      : ${REPOS_FILE:-命令行参数}"
 info "脚本目录      : $SCRIPTS_DIR"
@@ -160,7 +175,7 @@ info "访问方式      : 客户端直接连接 git-daemon"
 echo
 
 # 1. 系统依赖
-info "[1/9] 检查系统依赖 ..."
+info "[1/8] 检查系统依赖 ..."
 
 if ! command -v git >/dev/null 2>&1; then
     info "安装 git ..."
@@ -184,7 +199,7 @@ fi
 ok "系统依赖就绪"
 
 # 2. 创建 git 用户
-info "[2/9] 创建 git 用户 ..."
+info "[2/8] 创建 git 用户 ..."
 
 if id "$GIT_USER" >/dev/null 2>&1; then
     ok "用户 $GIT_USER 已存在"
@@ -194,7 +209,7 @@ else
 fi
 
 # 3. 创建目录结构
-info "[3/9] 创建目录结构 ..."
+info "[3/8] 创建目录结构 ..."
 
 mkdir -p "$MIRROR_ROOT" "$CONF_DIR" "$LOG_DIR" "$SCRIPTS_DIR" "/var/lock"
 mkdir -p "/home/$GIT_USER/.ssh"
@@ -212,7 +227,7 @@ chown "$GIT_USER:$GIT_USER" "/var/lock/git-mirror-sync.lock"
 ok "目录结构就绪"
 
 # 4. 写入配置文件
-info "[4/9] 写入配置文件 ..."
+info "[4/8] 写入配置文件 ..."
 
 cat > "$CONF_DIR/mirror.env" <<EOF
 PROXY_URL="$PROXY_URL"
@@ -226,7 +241,6 @@ chmod 600 "$CONF_DIR/mirror.env"
 cat > "$CONF_DIR/install.paths" <<EOF
 SCRIPTS_DIR="$SCRIPTS_DIR"
 SYNC_SCRIPT="$SYNC_SCRIPT"
-HOOK_SCRIPT="$HOOK_SCRIPT"
 HOSTS_SCRIPT="$HOSTS_SCRIPT"
 ENABLE_CRON="$ENABLE_CRON"
 EOF
@@ -250,7 +264,7 @@ chmod 640 "$CONF_DIR/repos.list"
 ok "配置文件写入完成"
 
 # 5. 安装同步脚本
-info "[5/9] 安装同步脚本 ..."
+info "[5/8] 安装同步脚本 ..."
 
 cat > "$SYNC_SCRIPT" <<'SYNC_SCRIPT_EOF'
 #!/bin/bash
@@ -494,17 +508,8 @@ update_repo() {
     return 1
 }
 
-build_flat_links() {
-    cd "$MIRROR_ROOT" || return
-    find . -mindepth 2 -maxdepth 2 -type d -name '*.git' | while read -r path; do
-        local repo link
-        repo="$(basename "$path")"
-        link="./${repo}"
-        if [ -e "$link" ] || [ -L "$link" ]; then continue; fi
-        ln -s "$path" "$link"
-        chown -h git:git "$link" 2>/dev/null || true
-    done
-}
+SYNC_SCRIPT_EOF
+cat >> "$SYNC_SCRIPT" <<'SYNC_SCRIPT_EOF'
 
 # 分支报告开始
 # 按仓库分组，以短哈希、摘要和独立时间行报告分支头，失败时明确标记本地缓存。
@@ -591,8 +596,6 @@ while IFS= read -r line || [ -n "$line" ]; do
     chown -R git:git "$dir" 2>/dev/null || true
 done < "$REPO_LIST"
 
-build_flat_links
-
 log "========== 同步结束：总计 ${total}，成功 ${ok}，失败 ${fail} =========="
 
 [ "$fail" -gt 0 ] && exit 1
@@ -603,9 +606,9 @@ chown "$GIT_USER:$GIT_USER" "$SYNC_SCRIPT"
 chmod 750 "$SYNC_SCRIPT"
 ok "同步脚本安装完成"
 
-# 5.5 安装 GitHub hosts 自动刷新脚本
+# 6. 安装 GitHub hosts 自动刷新脚本
 if [[ "$ENABLE_HOSTS_UPDATE" == "yes" ]]; then
-    info "[5.5/9] 安装 GitHub hosts 自动刷新脚本 ..."
+    info "[6/8] 安装 GitHub hosts 自动刷新脚本 ..."
 
     cat > "$HOSTS_SCRIPT" <<'HOSTS_SCRIPT_EOF'
 #!/bin/bash
@@ -689,38 +692,11 @@ HOSTS_SCRIPT_EOF
 
     ok "hosts 更新脚本安装完成"
 else
-    info "[5.5/9] 跳过 hosts 自动刷新（--hosts no）"
+    info "[6/8] 跳过 hosts 自动刷新（--hosts no）"
 fi
-
-# 6. 安装 access-hook 脚本
-info "[6/9] 安装 access-hook ..."
-
-cat > "$HOOK_SCRIPT" <<'HOOK_EOF'
-#!/bin/bash
-set -euo pipefail
-
-# 只允许镜像根目录下的仓库短名读取，不接受完整路径或写入请求。
-SERVICE="${1:-}"
-REPO_PATH="${2:-}"
-MIRROR_ROOT="/srv/git-mirror"
-if [[ "$SERVICE" != "upload-pack" || "$REPO_PATH" != "$MIRROR_ROOT/"* ]]; then
-    echo "Access denied"
-    exit 1
-fi
-REPO_NAME="${REPO_PATH#"$MIRROR_ROOT/"}"
-if [[ ! "$REPO_NAME" =~ ^[a-zA-Z0-9_][a-zA-Z0-9._-]*\.git$ ]]; then
-    echo "Access denied"
-    exit 1
-fi
-exit 0
-HOOK_EOF
-
-chown "$GIT_USER:$GIT_USER" "$HOOK_SCRIPT"
-chmod 750 "$HOOK_SCRIPT"
-ok "access-hook 安装完成"
 
 # 7. 配置 systemd 服务
-info "[7/9] 配置 git-daemon systemd 服务 ..."
+info "[7/8] 配置 git-daemon systemd 服务 ..."
 
 cat > "$SERVICE_FILE" <<EOF
 [Unit]
@@ -737,7 +713,6 @@ ExecStart=/usr/bin/git daemon \\
     --reuseaddr \\
     --base-path=$MIRROR_ROOT \\
     --no-informative-errors \\
-    --access-hook=$HOOK_SCRIPT \\
     --max-connections=20 \\
     --verbose \\
     --listen=$LISTEN_ADDRESS \\
@@ -760,7 +735,7 @@ systemctl enable git-daemon >/dev/null 2>&1
 ok "systemd 服务已配置"
 
 # 8. 首次同步
-info "[8/9] 执行首次同步（大仓库可能耗时较长） ..."
+info "[8/8] 执行首次同步（大仓库可能耗时较长） ..."
 
 sudo -u "$GIT_USER" -H "$SYNC_SCRIPT" || warn "首次同步有失败项，请查看 $LOG_DIR/sync.log"
 
@@ -796,17 +771,6 @@ fi
 echo
 ok "部署完成"
 echo
-
-FIRST_FLAT="$(awk '
-    { sub(/\r$/, ""); sub(/#.*/, "") }
-    NF {
-        n = split($1, parts, "/")
-        repo = parts[n]
-        sub(/\.git$/, "", repo)
-        print repo
-        exit
-    }
-' "$CONF_DIR/repos.list")"
 
 # IPv4 连接提示开始
 # 从启用网卡读取 IPv4，结合监听范围打印命令，不查询公网地址或修改网络。
@@ -870,7 +834,12 @@ print_connection_commands() {
 }
 # IPv4 连接提示结束
 
-print_connection_commands "$LISTEN_ADDRESS" "$GIT_PORT" "$FIRST_FLAT"
+FIRST_REPO=$(select_connection_repo "$MIRROR_ROOT" "$CONF_DIR/repos.list") || FIRST_REPO=""
+if [ -z "$FIRST_REPO" ]; then
+    warn "未检测到已发布的仓库，跳过 Git 连接命令。"
+fi
+
+print_connection_commands "$LISTEN_ADDRESS" "$GIT_PORT" "$FIRST_REPO"
 echo
 info "关键文件："
 echo "  配置    : $CONF_DIR/mirror.env, $CONF_DIR/repos.list"

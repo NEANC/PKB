@@ -57,41 +57,21 @@ assert_absent "$UNINSTALL" 'exec 9>>' '卸载不以追加创建方式打开其�
 assert_contains "$UNINSTALL" 'rm -f -- "$LOCK_FILE"' '卸载完成后删除同步锁文件'
 
 assert_absent "$DEPLOY" '--strict-paths' '动态仓库目录不使用严格目录白名单模式'
+assert_absent "$DEPLOY" 'access-hook|access\.mode|PATH_FUNCTIONS|build_flat_links|block-full-path|BLOCK_FULL_PATH' '部署脚本移除访问策略与自动短名链接'
+assert_absent "$UNINSTALL" 'HOOK_SCRIPT|access-hook' '卸载脚本移除访问钩子清理'
 
-# 提取并独立运行访问钩子，不启动服务或访问真实仓库。
+# 拼接生成的同步脚本并检查整体语法，不执行同步或部署。
 TEST_DIR=$(mktemp -d "$SCRIPT_DIR/.git-mirror-test.XXXXXX")
 trap 'rm -rf -- "$TEST_DIR"' EXIT
-awk "/^cat > .*<<'HOOK_EOF'$/ { copying=1; next } copying && /^HOOK_EOF$/ { exit } copying { print }" "$DEPLOY" > "$TEST_DIR/hook.sh"
-if [ ! -s "$TEST_DIR/hook.sh" ]; then
-    printf '[FAIL] 未能提取访问钩子\n'
-    exit 1
-fi
-bash -n "$TEST_DIR/hook.sh"
-
-# 比较访问钩子的实际退出状态与预期，覆盖允许和拒绝路径。
-assert_hook() {
-    local expected="$1" service="$2" path="$3" actual=0
-    bash "$TEST_DIR/hook.sh" "$service" "$path" > /dev/null 2>&1 || actual=$?
-    if { [ "$expected" = allow ] && [ "$actual" -eq 0 ]; } ||
-       { [ "$expected" = deny ] && [ "$actual" -ne 0 ]; }; then
-        printf '[PASS] 钩子 %s：%s %s\n' "$expected" "$service" "$path"
-    else
-        printf '[FAIL] 钩子 %s：%s %s\n' "$expected" "$service" "$path"
-        FAILURES=$((FAILURES + 1))
-    fi
-    return 0
-}
-assert_hook allow upload-pack /srv/git-mirror/repo.git
-assert_hook deny upload-pack /srv/git-mirror/owner/repo.git
-assert_hook deny upload-pack /srv/git-mirror/../repo.git
-assert_hook deny upload-pack /other/repo.git
-assert_hook deny receive-pack /srv/git-mirror/repo.git
-assert_hook deny upload-pack ''
+awk "/^cat >>? .*<<'SYNC_SCRIPT_EOF'$/ { copying=1; blocks++; next } copying && /^SYNC_SCRIPT_EOF$/ { copying=0; next } copying { print } END { if (blocks != 2) exit 1 }" "$DEPLOY" > "$TEST_DIR/generated-sync.sh"
+bash -n "$TEST_DIR/generated-sync.sh"
+printf '[PASS] 拼接后的完整同步脚本 Bash 语法\n'
 
 # 检查新增的部署入口和卸载路径记录。
 assert_contains "$DEPLOY" '--repos-file' '支持逐行仓库及分支配置'
 assert_contains "$DEPLOY" '--scripts-dir' '支持自定义脚本安装目录'
 assert_contains "$DEPLOY" '--no-cron' '支持不配置定时任务'
+assert_contains "$DEPLOY" 'select_connection_repo' '连接提示使用已发布仓库的完整路径'
 assert_contains "$UNINSTALL" 'install.paths' '卸载读取实际脚本安装位置'
 
 # 提取同步函数，使用本地裸仓库验证真实 refspec 行为。
@@ -351,6 +331,24 @@ else
     unset -f ip info warn
 fi
 assert_absent "$DEPLOY" '<监听地址>|<域名>' '部署输出移除地址占位符'
+
+# 提取连接提示中的仓库选择函数，验证只选已发布仓库且使用完整路径。
+awk '/^# 选择首个已发布仓库用于部署后的连接提示/,/^}$/' "$DEPLOY" > "$TEST_DIR/select-repo.sh"
+if [ ! -s "$TEST_DIR/select-repo.sh" ]; then
+    printf '[FAIL] 缺少连接提示的仓库选择函数\n'
+    FAILURES=$((FAILURES + 1))
+else
+    source "$TEST_DIR/select-repo.sh"
+    SELECT_ROOT="$TEST_DIR/select-root"
+    SELECT_LIST="$TEST_DIR/select-repos.list"
+    mkdir -p "$SELECT_ROOT/alice"
+    git init --bare --quiet "$SELECT_ROOT/alice/demo.git"
+    printf 'alice/demo master\nalice/pending\n' > "$SELECT_LIST"
+    assert_equal '' "$(select_connection_repo "$SELECT_ROOT" "$SELECT_LIST")" '未发布仓库不用于连接提示'
+    touch "$SELECT_ROOT/alice/demo.git/git-daemon-export-ok"
+    assert_equal 'alice/demo' "$(select_connection_repo "$SELECT_ROOT" "$SELECT_LIST")" '连接提示使用完整仓库路径'
+    assert_equal '' "$(select_connection_repo "$SELECT_ROOT" "$TEST_DIR/missing.list")" '缺少仓库列表时返回空'
+fi
 
 printf '\n检查失败数：%s\n' "$FAILURES"
 if [ "$FAILURES" -gt 0 ]; then
